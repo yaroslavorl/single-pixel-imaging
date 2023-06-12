@@ -9,7 +9,7 @@ def detector(x, pattern):
 
 def dct_matrix(n):
     matrix = torch.zeros((n, n))
-    
+
     for i in range(1, n):
         for j in range(n):
             matrix[i][j] = (2 * j + 1) * i * torch.pi / (2 * n)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     pattern_num = 300
 
-    img = cv2.imread('/home/jaroslav/PycharmProjects/dcan/single_pixel_camera/img/test_cs_32.png', 0)
+    img = cv2.imread('lena.jpg', 0)
     img = torch.FloatTensor(img) / 255
     size_img = img.shape
 
@@ -69,4 +69,4 @@ if __name__ == "__main__":
     img = grad_descent(img, y, p, loss, optimizer, epochs=500)
     print(time.time() - start)
 
-    cv2.imwrite('/home/jaroslav/PycharmProjects/dcan/single_pixel_camera/img/test.jpg', torch.matmul(basis, img).reshape(size_img).detach().numpy() * 255)
+    cv2.imwrite('test.jpg', torch.matmul(basis, img).reshape(size_img).detach().numpy() * 255)
