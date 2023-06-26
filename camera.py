@@ -19,7 +19,7 @@ class Camera:
     def get_dct_matrix(self):
         return torch.FloatTensor(dct(np.eye(self.size_img[0] * self.size_img[1]), axis=0, norm='ortho'))
 
-    def binary_mask(self):
+    def get_binary_mask(self):
         return 2 * torch.randint(0, 2, size=(self.pattern_num, self.size_img[0] * self.size_img[1]),
                                  dtype=torch.float32) - 1
 
