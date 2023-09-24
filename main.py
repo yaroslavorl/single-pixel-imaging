@@ -1,32 +1,39 @@
-from camera import Camera
+from camera import SinglePixelCamera
+from utils import *
+
 import cv2
 import torch
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-pattern_num = 2000
-img = cv2.imread('lena64.jpeg', 0)
-img = torch.FloatTensor(img) / 255
-size_img = img.shape
+def preprocess(img, pattern_num):
 
-model = Camera(size_img=size_img, pattern_num=pattern_num)
+    img = torch.FloatTensor(img) / 255.0
+    size_img = img.shape
 
-basis = model.get_dct_matrix()
-pattern = model.get_binary_mask()
-y = model.detector(pattern, img.flatten())
+    basis = cosine_transform_matrix(size_img)
+    binary_pattern = binary_mask(size_img, pattern_num)
+    output = single_point_detector(binary_pattern, img.flatten())
 
-img = torch.randint(0, 2, (size_img[0], size_img[1]), dtype=torch.float32, device=device)
+    intended_img = torch.randint(0, 2, (size_img[0], size_img[1]), dtype=torch.float32, device=device)
+    intended_img = torch.matmul(basis.to(device), intended_img.flatten())
+    intended_img.requires_grad = True
+
+    transposed_basis = basis.T
+    P = torch.matmul(binary_pattern, transposed_basis)
+
+    return intended_img, output, P, transposed_basis
 
 
-img = torch.matmul(basis.to(device), img.flatten())
-basis = basis.T
-p = torch.matmul(pattern, basis)
+if __name__ == '__main__':
 
-img.requires_grad = True
-model.compile(img, loss=torch.nn.MSELoss, optimizer=torch.optim.AdamW, lr=0.03)
-model.fit(p.to(device), y.to(device), epochs=1000)
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    print(device)
 
-img = model.get_img()
+    input_img = cv2.imread('single-pixel-imaging/img/lena64.jpeg', 0)
+    intended_img, output, P, transposed_basis = preprocess(input_img, pattern_num=2000)
 
-cv2.imwrite('test.jpg',
-            torch.matmul(basis, img.to('cpu')).reshape(size_img).numpy() * 255)
+    model = SinglePixelCamera(intended_img, loss=torch.nn.MSELoss(), optimizer=torch.optim.AdamW, lr=0.03)
+    model.fit(P.to(device), output.to(device), epochs=1000)
+
+    img = model.get_img()
+    cv2.imwrite('single-pixel-imaging/img/test_2.jpeg', torch.matmul(transposed_basis, img.to('cpu')).reshape(input_img.shape).numpy() * 255)
