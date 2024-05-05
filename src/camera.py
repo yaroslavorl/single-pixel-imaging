@@ -1,12 +1,10 @@
-import sys
-
 import torch
 from tqdm import tqdm
 
 
 class SinglePixelCamera:
 
-    def __init__(self, img, loss, optimizer, save_log: bool, frequency_saving: int = 50):
+    def __init__(self, img, loss, optimizer, save_log: bool, frequency_saving: int = 10):
         self._img = img
         self._loss = loss
         self._optimizer = optimizer

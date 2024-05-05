@@ -3,8 +3,8 @@ import os
 import torch
 import cv2
 
-from camera import SinglePixelCamera
-from utils import single_point_detector, dct_cosine_transform_matrix, dct_img_to_pixels, binary_mask
+from src.camera import SinglePixelCamera
+from src.utils import single_point_detector, dct_cosine_transform_matrix, dct_img_to_pixels, binary_mask
 
 
 def preprocess(img, num_patterns, device):
@@ -28,13 +28,13 @@ def preprocess(img, num_patterns, device):
 
 
 def main():
-    IMG_PATH = 'img/mr_president.jpg'
-    OUTPUT_PATH = 'img/test.jpeg'
+    IMG_PATH = 'test_img/mr_president.jpg'
+    OUTPUT_PATH = 'test_img/test.jpeg'
 
     INPUT_IMG = cv2.imread(IMG_PATH, 0)
     IMG_SIZE = INPUT_IMG.shape
 
-    LOG_DIR = 'img/log'
+    LOG_DIR = 'test_img/log'
     SAVE_LOG = True
 
     PERCENT = 0.3
@@ -62,7 +62,7 @@ def main():
     if SAVE_LOG:
         os.makedirs(LOG_DIR, exist_ok=True)
         for i, img in enumerate(model.log_list):
-            cv2.imwrite(f'img/log/{i}.jpg', dct_img_to_pixels(img, transposed_basis, IMG_SIZE))
+            cv2.imwrite(f'test_img/log/{i}.jpg', dct_img_to_pixels(img, transposed_basis, IMG_SIZE))
 
 
 if __name__ == '__main__':
