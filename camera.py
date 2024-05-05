@@ -1,30 +1,38 @@
+import sys
+
 import torch
+from tqdm import tqdm
 
 
 class SinglePixelCamera:
 
-    def __init__(self, img, loss, optimizer, lr):
+    def __init__(self, img, loss, optimizer, save_log: bool, frequency_saving: int = 50):
+        self._img = img
+        self._loss = loss
+        self._optimizer = optimizer
+        self.loss_list = []
 
-        self.img = img
-        self.loss = loss
-        self.optimizer = optimizer([self.img], lr=lr)
-
-    @staticmethod
-    def lasso(w, alpha=0.1):
-        return alpha * torch.sum(torch.abs(w))
-
-    def get_img(self):
-        return self.img.detach().clone()
+        self.save_log = save_log
+        self.frequency_saving = frequency_saving
+        self.log_list = []
 
     def fit(self, P, y, epochs):
+        for epoch in tqdm(range(epochs), desc="Training", unit="epoch"):
+            output = torch.matmul(P, self._img)
+            error = self._loss(output, y) + self._l1_reg(self._img)
 
-        for epoch in range(1, epochs + 1):
-            output = torch.matmul(P, self.img)
-            error = self.loss(output, y) + self.lasso(self.img)
-
-            self.optimizer.zero_grad()
+            self._optimizer.zero_grad()
             error.backward()
-            self.optimizer.step()
+            self.loss_list.append(error.item())
+            self._optimizer.step()
 
-            print(f'Эпоха: {epoch}/{epochs}, loss: {error.item()}')
-            
+            if self.save_log and epoch % self.frequency_saving == 0:
+                self.log_list.append(self.get_img)
+
+    @property
+    def get_img(self):
+        return self._img.detach().clone()
+
+    @staticmethod
+    def _l1_reg(w, alpha=0.1):
+        return alpha * torch.sum(torch.abs(w))
