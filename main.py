@@ -1,4 +1,5 @@
 import os
+import time
 
 import torch
 import cv2
@@ -62,8 +63,8 @@ if __name__ == '__main__':
 
     PERCENT = 0.3
     NUM_PATTERNS = int(IMG_SIZE[0] * IMG_SIZE[1] * PERCENT)
-    EPOCHS = 2000
-    LR = 0.03
+    EPOCHS = 200
+    LR = 0.9
 
     DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(DEVICE)
