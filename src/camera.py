@@ -4,15 +4,15 @@ from tqdm import tqdm
 
 class SinglePixelCamera:
 
-    def __init__(self, img, loss, optimizer, save_log: bool, frequency_saving: int = 10):
+    def __init__(self, img, loss, optimizer, history: bool, frequency_saving: int = 10):
         self._img = img
         self._loss = loss
-        self._optimizer = optimizer
         self.loss_list = []
+        self._optimizer = optimizer
 
-        self.save_log = save_log
+        self.history = history
         self.frequency_saving = frequency_saving
-        self.log_list = []
+        self.img_history_list = []
 
     def fit(self, P, y, epochs):
         for epoch in tqdm(range(epochs), desc="Training", unit="epoch"):
@@ -24,8 +24,8 @@ class SinglePixelCamera:
             self.loss_list.append(error.item())
             self._optimizer.step()
 
-            if self.save_log and epoch % self.frequency_saving == 0:
-                self.log_list.append(self.get_img)
+            if self.history and epoch % self.frequency_saving == 0:
+                self.img_history_list.append(self.get_img)
 
     @property
     def get_img(self):
@@ -33,4 +33,4 @@ class SinglePixelCamera:
 
     @staticmethod
     def _l1_reg(w, alpha=0.1):
-        return alpha * torch.sum(torch.abs(w))
+        return alpha * torch.norm(w, 1)

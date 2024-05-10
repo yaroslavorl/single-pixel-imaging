@@ -28,30 +28,14 @@ def preprocess(img, num_patterns, device):
 
 
 def main():
-    IMG_PATH = 'test_img/mr_president.jpg'
-    OUTPUT_PATH = 'test_img/test.jpeg'
-
-    INPUT_IMG = cv2.imread(IMG_PATH, 0)
-    IMG_SIZE = INPUT_IMG.shape
-
-    LOG_DIR = 'test_img/log'
-    SAVE_LOG = True
-
-    PERCENT = 0.3
-    NUM_PATTERNS = int(IMG_SIZE[0] * IMG_SIZE[1] * PERCENT)
-    EPOCHS = 2000
-    LR = 0.03
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    print(device)
-    P, initial_img, measurement_y, transposed_basis = preprocess(INPUT_IMG, num_patterns=NUM_PATTERNS, device=device)
+    P, initial_img, measurement_y, transposed_basis = preprocess(INPUT_IMG, num_patterns=NUM_PATTERNS, device=DEVICE)
 
     model = SinglePixelCamera(initial_img,
                               loss=torch.nn.MSELoss(),
                               optimizer=torch.optim.AdamW([initial_img], lr=LR),
-                              save_log=SAVE_LOG)
+                              history=SAVE_RECONSTRUCT_HISTORY)
 
-    model.fit(P.to(device), measurement_y.to(device), epochs=EPOCHS)
+    model.fit(P.to(DEVICE), measurement_y.to(DEVICE), epochs=EPOCHS)
     # print(model.loss_list)
 
     output_img = model.get_img
@@ -59,11 +43,28 @@ def main():
 
     cv2.imwrite(OUTPUT_PATH, output_img)
 
-    if SAVE_LOG:
-        os.makedirs(LOG_DIR, exist_ok=True)
-        for i, img in enumerate(model.log_list):
-            cv2.imwrite(f'test_img/log/{i}.jpg', dct_img_to_pixels(img, transposed_basis, IMG_SIZE))
+    if SAVE_RECONSTRUCT_HISTORY:
+        os.makedirs(HISTORY_DIR, exist_ok=True)
+        for i, img in enumerate(model.img_history_list):
+            cv2.imwrite(os.path.join(HISTORY_DIR, f'{i}.jpg'), dct_img_to_pixels(img, transposed_basis, IMG_SIZE))
 
 
 if __name__ == '__main__':
+
+    IMG_PATH = 'test_img/mr_president.jpg'
+    OUTPUT_PATH = 'test_img/test_4.jpg'
+
+    INPUT_IMG = cv2.imread(IMG_PATH, 0)
+    IMG_SIZE = INPUT_IMG.shape
+
+    HISTORY_DIR = 'test_img/rec_history'
+    SAVE_RECONSTRUCT_HISTORY = True
+
+    PERCENT = 0.3
+    NUM_PATTERNS = int(IMG_SIZE[0] * IMG_SIZE[1] * PERCENT)
+    EPOCHS = 2000
+    LR = 0.03
+
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(DEVICE)
     main()
