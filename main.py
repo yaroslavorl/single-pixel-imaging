@@ -1,5 +1,4 @@
 import os
-import time
 
 import torch
 import cv2
@@ -29,6 +28,23 @@ def preprocess(img, num_patterns, device):
 
 
 def main():
+    IMG_PATH = 'test_img/mr_president.jpg'
+    OUTPUT_PATH = 'test_img/test_5.jpg'
+
+    INPUT_IMG = cv2.imread(IMG_PATH, 0)
+    IMG_SIZE = INPUT_IMG.shape
+
+    HISTORY_DIR = 'test_img/rec_history'
+    SAVE_RECONSTRUCT_HISTORY = True
+
+    PERCENT = 0.3
+    NUM_PATTERNS = int(IMG_SIZE[0] * IMG_SIZE[1] * PERCENT)
+    EPOCHS = 200
+    LR = 0.9
+
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(DEVICE)
+
     P, initial_img, measurement_y, transposed_basis = preprocess(INPUT_IMG, num_patterns=NUM_PATTERNS, device=DEVICE)
 
     model = SinglePixelCamera(initial_img,
@@ -51,21 +67,4 @@ def main():
 
 
 if __name__ == '__main__':
-
-    IMG_PATH = 'test_img/mr_president.jpg'
-    OUTPUT_PATH = 'test_img/test_4.jpg'
-
-    INPUT_IMG = cv2.imread(IMG_PATH, 0)
-    IMG_SIZE = INPUT_IMG.shape
-
-    HISTORY_DIR = 'test_img/rec_history'
-    SAVE_RECONSTRUCT_HISTORY = True
-
-    PERCENT = 0.3
-    NUM_PATTERNS = int(IMG_SIZE[0] * IMG_SIZE[1] * PERCENT)
-    EPOCHS = 200
-    LR = 0.9
-
-    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(DEVICE)
     main()
